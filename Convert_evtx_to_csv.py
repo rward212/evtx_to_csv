@@ -1,45 +1,46 @@
+import argparse
 import csv
 import json
 from datetime import datetime
 from evtx import PyEvtxParser
-print("Made it to here")
-import xml.etree.ElementTree as Et
+
+LEVELDISPLAYNAMES = ["Warning", "Error", "Warning", "Information", "Unknown"]
+
+
+# Formats date and time
+def get_date(ISOString):
+    try:
+        IsoDateTime = datetime.fromisoformat(ISOString)
+    except ValueError:
+        date_time = "N/A"
+    return IsoDateTime.strftime("%B %d, %Y %I:%M:%S %p UTC")
 
 
 def extract_event_data(evtx_file, output_csv):
     parser = PyEvtxParser(evtx_file)
-    for record in parser.records_json():
-        print(f'Event Record ID: {record["event_record_id"]}')
-        print(f'Event Timestamp: {record["timestamp"]}')
-        print(record['data'])
-        print(f'------------------------------------------')
-    # with PyEvtxParser(evtx_file) as log:
-    #     with open(output_csv, mode='w', newline='', encoding='utf-8') as csvfile:
-    #         writer = csv.writer(csvfile)
-    #         writer.writerow(["Severity", "Date and Time", "Description"])
-    #
-    #         for record in log.records():
-    #             xml_str = evtx_file_xml_view(record)
-    #             event_xml = Et.fromstring(xml_str)
-    #
-    #             # Extract relevant fields
-    #             severity = event_xml.find(".//Level").text if event_xml.find(".//Level") is not None else "N/A"
-    #             date_time = event_xml.find(".//TimeCreated").get("SystemTime") if event_xml.find(
-    #                 ".//TimeCreated") is not None else "N/A"
-    #             description = event_xml.find(".//EventData").text if event_xml.find(
-    #                 ".//EventData") is not None else "N/A"
-    #
-    #             # Formatting date and time
-    #             try:
-    #                 date_time = datetime.fromisoformat(date_time.replace("Z", "+00:00"))
-    #             except ValueError:
-    #                 date_time = "N/A"
-    #
-    #             writer.writerow([severity, date_time, description])
-    #
-    # print(f"Data has been successfully written to {output_csv}")
+    with open(output_csv, mode='a', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["DateTime", "Severity", "Message", "Source"])
+
+        for record in parser.records_json():
+            event_data = json.loads(record['data'])
+
+            timestamp = get_date(event_data['Event']['System']['TimeCreated']['#attributes']['SystemTime'])
+            severity = LEVELDISPLAYNAMES[event_data['Event']['System']['Level']-1]
+            message = event_data['Event']['EventData']['Data']['#text'][0]
+            program = event_data['Event']['System']['Provider']['#attributes']['Name']
+
+            writer.writerow([timestamp, severity, message, program])
+    print(f"Data has been successfully written to {output_csv}")
 
 
-input_evtx_file = r"test_files/sample.evtx"
-output_csv_file = "output_events.csv"
-extract_event_data(input_evtx_file, output_csv_file)
+if __name__ == "__main__":
+    # set up argument parsing
+    parser = argparse.ArgumentParser(description="Extract event data from an EVTX file and write to a CSV file.")
+    parser.add_argument("evtx_file", help="The path to the input EVTX file.")
+
+    # Parse arguments
+    args = parser.parse_args()
+
+output_csv_file = "Logs.csv"
+extract_event_data(args.evtx_file, output_csv_file)
