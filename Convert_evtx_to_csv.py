@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from evtx import PyEvtxParser
 
-LEVELDISPLAYNAMES = ["Warning", "Error", "Warning", "Information", "Unknown"]
+LEVELDISPLAYNAMES = ["Severity Unknown", "Error", "Warning", "Information"]
 
 
 # Formats date and time
