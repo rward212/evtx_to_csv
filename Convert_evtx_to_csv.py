@@ -13,7 +13,21 @@ def get_date(ISOString):
         IsoDateTime = datetime.fromisoformat(ISOString)
     except ValueError:
         date_time = "N/A"
+
     return IsoDateTime.strftime("%B %d, %Y %I:%M:%S %p UTC")
+
+def find_message(source, event):
+    if 'Connector' in source:
+        return event['Event']['EventData']['Data']['#text'][0]
+    elif source == 'PIWebAPI':
+        return event['Event']['EventData']['message']
+    elif source == 'OSIsoft-PIDataServices':
+        if 'message' in event['Event']['EventData']:
+            return event['Event']['EventData']['message']
+        else:
+            return event['Event']['EventData']['stringValue']
+    else:
+        'Placeholder'
 
 
 def extract_event_data(evtx_file, output_csv):
@@ -27,8 +41,9 @@ def extract_event_data(evtx_file, output_csv):
 
             timestamp = get_date(event_data['Event']['System']['TimeCreated']['#attributes']['SystemTime'])
             severity = LEVELDISPLAYNAMES[event_data['Event']['System']['Level']-1]
-            message = event_data['Event']['EventData']['Data']['#text'][0]
             program = event_data['Event']['System']['Provider']['#attributes']['Name']
+            message = find_message(program, event_data)
+
 
             writer.writerow([timestamp, severity, message, program])
     print(f"Data has been successfully written to {output_csv}")
