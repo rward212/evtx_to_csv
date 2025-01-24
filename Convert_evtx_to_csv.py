@@ -17,7 +17,7 @@ def get_date(ISOString):
     return IsoDateTime.strftime("%B %d, %Y %I:%M:%S %p UTC")
 
 def find_message(source, event):
-    if 'Connector' in source:
+    if any(x in source for x in ['Connector', 'CAST.Engine.WorkerNode', 'PIIntegrator']):
         return event['Event']['EventData']['Data']['#text'][0]
     elif source == 'PIWebAPI':
         return event['Event']['EventData']['message']
