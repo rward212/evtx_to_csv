@@ -16,18 +16,20 @@ def get_date(ISOString):
 
     return IsoDateTime.strftime("%B %d, %Y %I:%M:%S %p UTC")
 
+
 def find_message(source, event):
-    if any(x in source for x in ['Connector', 'CAST.Engine.WorkerNode', 'PIIntegrator']):
-        return event['Event']['EventData']['Data']['#text'][0]
-    elif source == 'PIWebAPI':
-        return event['Event']['EventData']['message']
-    elif source == 'OSIsoft-PIDataServices':
-        if 'message' in event['Event']['EventData']:
-            return event['Event']['EventData']['message']
-        else:
-            return event['Event']['EventData']['stringValue']
-    else:
-        'Placeholder'
+    event_data = event['Event']['EventData']
+
+    if event_data is None:
+        return 'Placeholder'
+
+    if source in {'Connector', 'CAST.Engine.WorkerNode', 'PIIntegrator', 'AF'}:
+        return event_data['Data']['#text'][0]
+
+    elif source in {'PIWebAPI', 'OSIsoft-PIDataServices'}:
+        return event_data.get('message', event_data.get('stringValue', 'Placeholder'))
+
+    return 'Placeholder'
 
 
 def extract_event_data(evtx_file, output_csv):
