@@ -23,7 +23,7 @@ def find_message(source, event):
     if event_data is None:
         return 'Placeholder'
 
-    if source in {'Connector', 'CAST.Engine.WorkerNode', 'PIIntegrator', 'AF'}:
+    if source in {'Connector', 'CAST.Engine.WorkerNode', 'PIIntegrator', 'AF', 'PIEFGen.exe'}:
         return event_data['Data']['#text'][0]
 
     elif source in {'PIWebAPI', 'OSIsoft-PIDataServices'}:

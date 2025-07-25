@@ -4,7 +4,7 @@
 a = Analysis(
     ['Convert_evtx_to_csv.py'],
     pathex=[],
-    binaries=[('C:\\Users\\roger.ward\\AppData\\Local\\Temp\\_MEI327242\\python311.dll', '.')],
+    binaries=[],
     datas=[],
     hiddenimports=[],
     hookspath=[],
