@@ -3,6 +3,7 @@ import csv
 import json
 from datetime import datetime
 from evtx import PyEvtxParser
+from tqdm import tqdm
 
 LEVELDISPLAYNAMES = ["Severity Unknown", "Error", "Warning", "Information"]
 
@@ -38,7 +39,7 @@ def extract_event_data(evtx_file, output_csv):
         writer = csv.writer(csvfile)
         writer.writerow(["DateTime", "Severity", "Message", "Source"])
 
-        for record in parser.records_json():
+        for record in tqdm(parser.records_json(), desc="Processing records", unit="record"):
             event_data = json.loads(record['data'])
 
             timestamp = get_date(event_data['Event']['System']['TimeCreated']['#attributes']['SystemTime'])
@@ -48,7 +49,7 @@ def extract_event_data(evtx_file, output_csv):
 
 
             writer.writerow([timestamp, severity, message, program])
-    print(f"Data has been successfully written to {output_csv}")
+    print(f"Data has been successfully written to {os.path.abspath(output_csv)}")
 
 
 if __name__ == "__main__":
